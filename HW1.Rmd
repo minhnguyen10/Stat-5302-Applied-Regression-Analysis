@@ -1,0 +1,154 @@
+---
+title: "Homework 1"
+author: "Minh Nguyen"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[LE,RO]{Minh Nguyen}
+- \fancyhead[LO,LE]{HW2}
+- \usepackage{float}
+
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: left=1in,right=1.2in,top=1in,bottom=1in
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(alr4)
+```
+
+Used to control the output printing.
+```{r, include=FALSE}
+## adapted from the post: https://community.rstudio.com/t/showing-only-the-first-few-lines-of-the-results-of-a-code-chunk/6963
+library(knitr)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Question 1
+
+```{r}
+library(knitr)
+include_graphics('HW1.png',)
+include_graphics('HW1-1.png',)
+```
+# Question 2
+
+```{r}
+A <- matrix(c(1, 2, 3, 4, 6, 5, 7, 8), nrow = 4)
+B <- matrix(c(1, 3, 2, 4), nrow = 4)
+C <- matrix(c(1, 3, 5, 7, 2, 4, 6, 8), nrow = 4)
+D <- matrix(c(1, 1, 1, 1, 1, 1, 1, 1, 1), nrow = 3)
+```
+
+## a.
+```{r}
+result <- A + C
+print(result)
+```
+
+## b.
+```{r}
+result <- A - C
+print(result)
+```
+
+## c.
+```{r}
+result <- t(B) %*% A
+print(result)
+```
+
+## d.
+```{r}
+result <- A %*% t(C)
+print(result)
+```
+
+## e.
+```{r}
+result <- t(C) %*% A
+print(result)
+```
+## f.
+```{r}
+result <- 2 * A
+print(result)
+```
+
+# Question 3
+
+```{r}
+#library(knitr)
+include_graphics('HW1 (1).png',)
+```
+
+# Question 4
+```{r}
+#library(knitr)
+include_graphics('HW1 (2).png',)
+```
+
+# Question 5
+X is a vector containing input data. In this case X is [1,1,1, 1, -1, 0.1]^T
+
+```{r}
+library(matlib)
+Y <- c(0.2,0.5,-0.3)
+X <- matrix(c(1,-1,0.1),ncol=1)
+X1 <- matrix(c(1,1,1,1,-1,0.1),ncol=2)
+
+print(X1)
+print(Y)
+# Beta <- inv(t(X) %*% X) %*% t(X) %*% Y
+
+maxtrx <- t(X1) %*% X1
+Beta <- Inverse(maxtrx) %*% t(X1) %*% Y
+
+print(Beta)
+# Beta <- Inverse(Beta)
+print(lm(Y~X))
+```
+
+# Question 6
+```{r}
+#library(knitr)
+include_graphics('HW1 (3).png',)
+```
+
+# Question 7
+```{r}
+#library(knitr)
+include_graphics('HW1 (4).png',)
+```
+
+# Question 8
+
+```{r}
+#library(knitr)
+include_graphics('HW1/Page1.png',)
+include_graphics('HW1/Page2.png',)
+```
