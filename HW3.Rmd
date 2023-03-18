@@ -1,0 +1,243 @@
+---
+title: "Homework 3"
+author: "Minh Nguyen"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[LE,RO]{Minh Nguyen}
+- \fancyhead[LO,LE]{HW2}
+- \usepackage{float}
+
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: left=1in,right=1.2in,top=1in,bottom=1in
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(alr4)
+```
+
+Used to control the output printing.
+```{r, include=FALSE}
+## adapted from the post: https://community.rstudio.com/t/showing-only-the-first-few-lines-of-the-results-of-a-code-chunk/6963
+library(knitr)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Chapter 2
+
+## Problem 2.20
+
+### 2.20.1
+```{r p2.20.1}
+data(oldfaith)
+mod20 <- lm(Interval ~ Duration, oldfaith)
+plot(Interval ~ Duration, oldfaith, ylab="Interval",
+     xlab="Duration")
+abline(mod20)
+```
+
+- Summarizing result below
+
+
+```{r p2.20.1-1}
+summary(mod20)
+```
+
+- Based on the graph we can see a linear relation ship between Interval and Duration. Since the Estimated slope is positive, we can tell that Interval and Duration have positive linear relationship. 
+
+### 2.20.2
+
+```{r p2.20.2}
+predict(mod20, data.frame(Duration=250), interval="prediction", level=.95)
+```
+
+#### 2.20.3
+
+```{r p2.20.3}
+z09 <- qnorm(0.9)
+y09 <- 33.987808 + 0.176863*250 + z09*6.004
+print(paste('The upper interval is',y09))
+# predict(mod20, data.frame(Duration=250), interval="prediction", level=.80)
+
+```
+
+## Problem 2.21.5
+
+```{r p2.21.5}
+data(wm1)
+X <- wm1$RSpd
+Y <- wm1$CSpd
+n <- length(X)
+x_bar <- sum(X)/n
+y_bar <- sum(Y)/n
+SXX <- sum((X - x_bar)**2)
+SYY <- sum((Y - y_bar)**2)
+SXY <- sum((X - x_bar)*(Y - y_bar))
+RSS <- SYY - SXY**2/SXX
+s2 <- RSS/(n-2)
+mod21 <- lm(CSpd ~ RSpd, wm1)
+summary(mod21)
+pred <- 3.14123 + .75573 * 7.4285
+m <- 62039
+stderror <- sqrt(s2 /m + s2*(1/n + ((7.4285 - x_bar)**2)/SXX))
+z_score <- qt(0.975,n-1)
+lower <- pred - z_score*stderror
+upper <- pred + z_score*stderror
+print(c('Lower'=lower,'Upper'=upper))
+```
+-  The 95% prediction interval on the long-term average at the candidate site is from 8.608565 to 8.901775 
+
+## Problem 3.2
+
+### 3.2.1
+
+```{r p3.2.1}
+data(UN11)
+scatterplotMatrix(~ fertility + log(ppgdp) + pctUrban, UN11)
+```
+
+- There  are negative linear relationships between fertality and log(ppgdp), fertality and pctUrban
+- There is a positive linear relationship between pctUrban and log(ppgdp)
+
+### 3.2.2
+
+```{r p3.2.2, fig.show="hold", out.width="50%"}
+mod321 <- lm(fertility ~ log(ppgdp), UN11)
+plot(fertility ~ log(ppgdp), UN11, ylab="fertility",
+     xlab="log(ppgdp)")
+abline(mod321)
+
+mod322 <- lm(fertility ~ pctUrban, UN11)
+plot(fertility ~ pctUrban, UN11, ylab="fertility",
+     xlab="pctUrban")
+abline(mod322)
+```
+
+- Verify that the slope coef are significantly different from 0 at any conventional level of significant
+
+```{r p3.2.2-1}
+summary(mod321)
+summary(mod322)
+```
+
+- based on the summary, we can see that the p-value of the slope from both model are extremely small <2e-16, which means that the slope coef are significantly different from 0 at any conventional level of significant 
+
+
+### 3.2.3
+#### log(ppgdp) adjusting for pctUrban
+```{r p3.2.3, out.width="50%"}
+# mod323 <- lm(fertility ~ log(ppgdp) + pctUrban, UN11)
+r1 <- residuals(lm(fertility ~ pctUrban, UN11))
+r2 <- residuals(lm(log(ppgdp) ~ pctUrban, UN11))
+m3 <- lm(r1 ~ r2)
+plot(r1 ~ r2,
+  xlab=expression(paste(hat(e), " fromn log(ppgdp) on pctUrban")),
+  ylab=expression(paste(hat(e), " fertility")))
+# plot(fertility ~ log(ppgdp), UN11, ylab="fertility",
+#      xlab="log(ppgdp) + pctUrban")
+abline(m3)
+```
+
+- Is log(ppgdp) usful after adjusting for pctUrban?
+
+```{r p3.2.3-1}
+summary(mod321)
+summary(m3)
+```
+
+- Now we have 
+- *$\hat{\beta_1}= -0.62009$* ignoring pctUrban.
+- *$\hat{\beta_1}= -6.151e-01$* adjusting for pctUrban.
+- The slope in the added-variable plot is a smaller than the slope in the plot that ignores pctUrban. So, we can see stronger relationship. Thus, the regressor log(ppgdp) is useful after adjusting for pctUrban.
+
+#### pctUrban after adjesting for log(ppgdp)
+```{r p3.2.3-2, out.width="50%"}
+# mod323_2 <- lm(fertility ~ log(ppgdp) + pctUrban, UN11)
+r1_2 <- residuals(lm(fertility ~ log(ppgdp), UN11))
+r2_2 <- residuals(lm(pctUrban ~ log(ppgdp), UN11))
+m3_2 <- lm(r1_2 ~ r2_2)
+plot(r1_2 ~ r2_2,
+  ylab=expression(paste(hat(e), " fertility on log(ppgdp)")))
+# plot(fertility ~ log(ppgdp), UN11, ylab="fertility",
+#      xlab="log(ppgdp) + pctUrban")
+abline(m3_2)
+```
+
+- Is pctUrban usful after adjusting for log(ppgdp)?
+
+```{r p3.2.3-3}
+summary(mod322)
+summary(m3_2)
+```
+- Now we have 
+- *$\hat{\beta_1}= -0.03104$* ignoring log(ppgdp)
+- *$\hat{\beta_1}= -4.393e-04$* adjusting for log(ppgdp)
+- The slope in the added-variable plot is larger than the slope in the plot that ignores log(ppgdp) So, we see weaker relationship, and the plot of the added-variable is almost horizontal. Thus,the regressor pctUrban. is useful after adjusting for log(ppgdp)
+
+#### Compute the estimated mean function with both predictors included as regressor 
+
+```{r p3.2.3-4}
+mod3232 <- lm(fertility ~ log(ppgdp) + pctUrban, data = UN11)
+summary(mod3232)
+```
+
+
+- Based on the summary, we can see that *$\hat{\beta_1}$* and *$\hat{\beta_2}$* equal to the slope of two added-variable plot above
+
+
+
+### 3.2.4
+
+- Based on the summary in part 3.2.3, we can see that the estimated coef for log(ppgdp) = 0.6151425 = estimated slope in the added-variable plot for log(ppgdp) after pctUrban.
+
+### 3.2.5
+
+```{r p3.2.5}
+summary(m3)
+summary(m3_2)
+summary(mod3232)
+```
+
+- Based on 3 summary, we can see that the residuals in the added-variable plot are identical to the residuals from the mean function with both predictors.
+
+#### 3.2.6
+
+```{r p3.2.6}
+summary(m3)
+summary(mod3232)
+```
+
+- Based on the summary, we can see that the t-test for the coefficient for log(ppgdp) is not quiet the same from the added-variable plot and from the regression with both regressors
+- This is because the t value is calculate based on the t-statistic, which depend on the degree of freedom. Since the degree of fredom is different in the added-variable plot and from the regression with both regressors since one has 1 variable (df=n-1) and one has 2 variables (df=n-2), it is sensible the the t-value is different. 
+
+
+
+
+
+
+

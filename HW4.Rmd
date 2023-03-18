@@ -1,0 +1,173 @@
+---
+title: "Homework 4"
+author: "Minh Nguyen"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[LE,RO]{Minh Nguyen}
+- \fancyhead[LO,LE]{HW2}
+- \usepackage{float}
+
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: left=1in,right=1.2in,top=1in,bottom=1in
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(alr4)
+```
+
+Used to control the output printing.
+```{r, include=FALSE}
+## adapted from the post: https://community.rstudio.com/t/showing-only-the-first-few-lines-of-the-results-of-a-code-chunk/6963
+library(knitr)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Chapter 4
+
+## Problem 4.2
+
+```{r p4.2}
+data(Transact)
+Transact$a <- (Transact$t1 + Transact$t2)/2
+Transact$d <- (Transact$t1 - Transact$t2)
+
+M1 = lm(time ~ t1 + t2, Transact)
+M2 = lm(time ~ a + d, Transact)
+M3 = lm(time ~ t2 + d, Transact)
+M4 = lm(time ~ t1 + t2 + a + d, Transact)
+```
+
+
+### 4.2.1
+```{r p4.2.1}
+summary(M4)
+```
+- Some of the coefficients estimates are labels as NA because we have exceed the rank of the data matrix. R will indicate the remaining coefficients estimates to be NA for not available a better choice because it can remind the analyst that the choice of which two coefficients to estimate is arbitrary. In another word, a and d are extracted from the linear combination of t1 and t2
+
+### 4.2.2 
+
+```{r p4.2.2}
+summary(M1)
+print('------------------------------------------------------------------------------------')
+summary(M2)
+print('------------------------------------------------------------------------------------')
+summary(M3)
+print('------------------------------------------------------------------------------------')
+summary(M4)
+```
+- We can see that summary statistics for the regression like R-squared and standard error are identical for all the mean fitted regression. We also see that the intercept from those fitted regression are the equal. Additionally, the estimate for t1 and t2 are identical from those in M1
+- For differences, we can see that the coefficient estimates in M2 and M3 are different from M1 and M4. 
+
+### 4.2.3
+- In M3, the coefficient estimate for t2 (2.03455) is about 3.75 times the size fo the estimate in M1. 
+- In M1, when we keep t1 constant, if t2 increase 1 unit, the response will increase beta21. In M3, when we keep t2 constant, if we keep d constant, and increase t2 1 unit, but this time, d = t1 - t2, so if we want to keep d2 constant while increasing the t2, we also need to increase more. Thus, the beta23 is larger.
+
+## Problem 4.9
+### 4.9.1
+- the Intercept is the estimated salary of male faculty, meanwhile the slope means is the estimated difference between male faculty salary vs female faculty salary. In the other words, the estimated salary of female faculty is the Intercept minus the slope
+
+### 4.9.2
+```{r p492}
+include_graphics('p492.png')
+```
+
+
+## Problem 4.10
+```{r p410}
+include_graphics('p410.png')
+```
+
+## Problem 4.11
+```{r p4.11}
+set.seed(1000)
+x <- rnorm(10000)
+e <- rnorm(10000)
+y <- 2*x + e
+m411 <- lm(y ~ x)
+summary(m411)
+```
+### 4.11.1
+
+-  Based on the result, we can see that Beta_0 alomst 0, Bea_1 almost 2, and e almost 1. Thus, we can verify that the joint distribution of (x, y), y|x (tidal) N(2x, 1)
+- Somehow, I could not add tidal in the rmarkdown
+
+### 4.11.2
+
+- Based on the fitted line above, we can verify that the estimates of the intercept, slope, variance, and R2 agree with the theoretical values to at least two decimal places
+
+### 4.11.3
+```{r p4113}
+tval <- (2.004445-2)/0.009965
+pval = 2*(pt(abs(tval),m411$df.residual,lower.tail = FALSE))
+print(c(p_value = pval))
+```
+
+- Fail to reject the null hypothesis since the p-value is larger than 0.05. Also, the probability of rejecting the Null Hypothesis is 0.05
+
+### 4.11.4
+```{r p4114}
+summary(lm(y ~ x))
+print('------------------------------------------------------------------------------------')
+summary(lm(y ~ x, subset = abs(x) < 2/3))
+print('------------------------------------------------------------------------------------')
+summary(lm(y ~ x, subset = abs(x) > 2/3))
+print('------------------------------------------------------------------------------------')
+summary(lm(y ~ x, subset = x < 2/3))
+```
+
+- estimated intercept, slope and variance are close to the values produced by the original population, but R2 depends on the sampling
+
+### 4.11.5
+```{r p4115}
+summary(lm(y ~ x))
+print('------------------------------------------------------------------------------------')
+summary(lm(y ~ x, subset = abs(y) < 1.5))
+print('------------------------------------------------------------------------------------')
+summary(lm(y ~ x, subset = abs(y) > 1.5))
+print('------------------------------------------------------------------------------------')
+summary(lm(y ~ x, subset = y < 0))
+```
+
+- estimated intercept, slope and variance are close to the population values in all cases except the case that |y| < 1.5 and also R2 still depends on the sampling
+
+
+## Problem 4.13
+```{r p4.13}
+data(MinnWater)
+MinnWater$logperCapitaUse <- log((10**6)* MinnWater$muniUse/MinnWater$muniPop)
+mod4131<- lm(logperCapitaUse ~ year, MinnWater)
+mod4132 <- update(mod4131, ~ . + muniPrecip)
+summary(mod4131)
+summary(mod4132)
+```
+
+- Based on the summary, we can see that we have rescaled to thousands of gallons per person rather than billions of gallons per person. We can see the paremeter are extremly small. Thus, in the per capita scale, there is no evidence of increasing municipal water usage. 
+
+
+

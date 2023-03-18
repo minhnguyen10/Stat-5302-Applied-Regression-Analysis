@@ -1,0 +1,85 @@
+---
+title: "Homework 6"
+author: "Minh Nguyen"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[LE,RO]{Minh Nguyen}
+- \fancyhead[LO,LE]{HW2}
+- \usepackage{float}
+
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: left=1in,right=1.2in,top=1in,bottom=1in
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(alr4)
+# library(lattice)
+```
+
+```{r, include=FALSE}
+## adapted from the post: https://community.rstudio.com/t/showing-only-the-first-few-lines-of-the-results-of-a-code-chunk/6963
+library(knitr)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Problem 6.1
+```{r p6.1}
+data(UN11)
+m67 <- lm(lifeExpF ~ group, UN11)
+m66 <- lm(lifeExpF ~ 1, UN11)
+anova(m66, m67)
+```
+
+- NH: lifeExpF \~ 1
+- AH: lifeExpF \~  group + log(ppgdp)
+- The function (6.6) is the null model, so it has residual sum of
+squares equal to SYY, and df = n - 1. Mean function (6.7) has a separate mean
+for each level of group but ignores log(ppgdp). For the test we get F = 159.27, when compared with the F(2, 195) distribution, we get a p-value of essentially 0, rejecting the NH and we can conclude that the beta for group and log(ppgdp) is not equal to 0. 
+
+
+# Problem 6.3
+```{r p6.33}
+data(UN11)
+m67 <- lm(lifeExpF ~ group, UN11)
+m69 <- lm(lifeExpF ~ group + log(ppgdp), UN11)
+anova(m67, m69)
+```
+
+- NH: lifeExpF \~ group
+- AH: lifeExpF \~ group + log(ppgdp)
+- For the test we get F = 101.12, when compared with the F(2, 195) distribution, we get a p-value of
+essentially 0, rejecting the NH. We can conclude that the beta for log(ppgdp) is not 0 and we need to add log(ppgdp)
+
+# Problem 6.8
+
+```{r p68}
+include_graphics('p68.png')
+```
+
+

@@ -1,0 +1,165 @@
+---
+title: "Homework 5"
+author: "Minh Nguyen"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[LE,RO]{Minh Nguyen}
+- \fancyhead[LO,LE]{HW2}
+- \usepackage{float}
+
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: left=1in,right=1.2in,top=1in,bottom=1in
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(alr4)
+# library(lattice)
+```
+
+```{r, include=FALSE}
+## adapted from the post: https://community.rstudio.com/t/showing-only-the-first-few-lines-of-the-results-of-a-code-chunk/6963
+library(knitr)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Problem 5.2
+
+
+
+# Problem 5.3
+## 5.3.1
+```{r p5.3.1}
+data(UN11)
+m531 = lm(lifeExpF ~ group, UN11)
+summary(m531)
+```
+- Since we treated the intercept as the sample mean for the omitted level oecd. The estimated
+coefficient for other is the difference between the sample mean for other
+and the sample mean for oecd, which is 7.12 similar in Table 2. The coefficient estimate for africa is the
+difference between the oecd sample mean and the sample mean for africa, which is 22.67 similar in Table 2. And when we subtract the the sample mean for other and the sample mean for africa, we got 15.55, which is similar in Table 2
+
+## 5.3.2
+
+```{r p5.3.2}
+library(emmeans)
+m532 = lm(lifeExpF ~ group + log(ppgdp), UN11)
+emms1 <- emmeans(m532,  "group")
+pairs(emms1) 
+```
+- By adding the log(ppgdp), we now fit a model, in which each groups has its own intercept, but all group have the same slope. Now the log(ppgdp) also contributes to the lifeExpF, so the intercept is clearly different than the model with only group. On the other word, the above result reasonably shows that the adjusted mean differences in the levels of group in the model lifeExpF -- group + log(ppgpd) is different than the result in Table 5.2. And the main change we can see is that the diffrent between estimated mean for oecd - other is very small and the p-value = 0.3927 suggest that the NH that the diffrent = 0 is maybe true (unable to reject)
+
+# Problem 5.10
+## 5.10.1
+Assuming both year and region are factors
+- The first model is a main effects mean functions for these data includes an intercept and two dummy variable for the second factor, for a total of 5 parameters. This means that for each region, the log(arcePrice) over year is the same in each region
+- The second model is a full second order mean function, which adds all the two-factor interactions to the mean function. The interaction between two factors is obtained by multiplying each of the dummy variables for the first factor by each of the dummy variables for the second factor, so in this experiment a two-factor interaction requires 2 × 2 = 4 regressors. The second-order model will have 5 + 4 = 9. This means that for each region and each year, the change in log(arcePrice) may be different.  
+- The second mean function will fit the data exactly because it has as many parameters as data points.
+
+## 5.10.2
+
+```{r p5.10.2}
+data(MinnLand)
+m5102 = lm(log(acrePrice) ~ year + region + year:region, MinnLand)
+summary(m5102)
+```
+- Summary using graphs
+
+```{r p5.10.2-1}
+MinnLand$fyear <- as.factor(MinnLand$year)
+m5102 <- lm(acrePrice ~ fyear*region, MinnLand)
+eff.acre <- allEffects(m5102)
+plot(eff.acre, xvar = "fyear",
+     axes = list(y = list(type = "response", lab="Acre Price")),
+     grid = TRUE, rotx=45)
+```
+
+```{r 5.10.2-2}
+plot(eff.acre, xvar = "fyear",
+     axes = list(y = list(type = "response", lab="Acre Price")),
+     grid = TRUE, rotx=45, multiline=TRUE)
+```
+- Based on the graph we can see that, overall, the Northwest region has lower price than other region. We can also see that, all regions have increase price over the year. 
+
+
+# Problem 5.17
+## 5.17.1
+```{r p5.17.1}
+data(salary)
+par(mfrow=c(1,3))
+boxplot(salary ~ sex, salary)
+boxplot(salary ~ rank, salary)
+boxplot(salary ~ degree, salary)
+```
+
+- Based on the first box plot, we can see that, male faculties has higher overall salary than female faculties. Based on the second box plot, we can see that higher rank has higher overall salary. Finally, on the last box plot, we can see that faculties with master degree have salary with more variety. 
+
+```{r p5.17.1-2}
+library(lattice)
+xyplot(salary~year|sex, data=salary, type=c("p", "g", "r"))
+```
+- Based on two graph, we can see that the mean of male's salary is generally higher that female's. Male also have longer year in general. Female also have more variable on year than salary. 
+
+## 5.17.2
+```{r 5.17.2}
+summary(m0 <- lm(salary ~ sex, salary))$coef
+```
+
+- The significance level is 0.07 two-sided and around 0.035 for one-sided. So if we use that to test the hypothesis that the difference between male and female salary is 0, we can reject that NP with confident level = 0.05. In the other word, p = 0.35, tells us that female faculties are paid less than male faculties
+- Other test hypothesis maybe test if the the mean salary for different rank faculties is the same??
+
+## 5.17.3
+
+```{r 5.17.3}
+m5173 <- lm(salary ~ ., salary)
+summary(m5173)
+```
+```{r 5.17.3-1}
+lower=1166.3731-925.56888*qt(0.975,45)
+upper=1166.3731+925.56888*qt(0.975,45)
+print(c(lower=lower,upper=upper))
+```
+
+
+## 5.17.4
+
+```{r 5.17.4}
+summary(lm(salary ~ . - rank, salary))$coef
+```
+-  We can see that the coefficient of sexFemale change from positive to negative. This is the result of removing a variable of the regressor
+
+
+
+
+
+
+
+
+
+
+

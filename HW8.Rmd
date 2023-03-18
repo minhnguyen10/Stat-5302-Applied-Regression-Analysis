@@ -1,0 +1,158 @@
+---
+title: "Homework 8"
+author: "Minh Nguyen"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[LE,RO]{Minh Nguyen}
+- \fancyhead[LO,LE]{HW2}
+- \usepackage{float}
+
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: left=1in,right=1.2in,top=1in,bottom=1in
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(alr4)
+# library(lattice)
+```
+
+```{r, include=FALSE}
+## adapted from the post: https://community.rstudio.com/t/showing-only-the-first-few-lines-of-the-results-of-a-code-chunk/6963
+library(knitr)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Problem 8.1
+
+## 8.1.1
+```{r}
+data(baeskel)
+scatterplot(Tension ~ Sulfur, baeskel, smooth=TRUE,boxplots=FALSE,spread=FALSE)
+```
+Based on the graph above we can verify that a transformation is required to archive a straight-line mean function
+
+## 8.1.2
+
+```{r}
+#new <- baeskel$Sulfur **-1
+#model1 <- lm(Tension ~ new, data=baeskel)
+with(baeskel, invTranPlot(Sulfur,Tension))
+```
+
+Based on this graph, I think lamda = 0 (log transformation) gives fitted values that match the data most closely  
+
+## 8.1.3
+
+```{r}
+model1.3 <- lm(Tension ~ log(Sulfur), baeskel)
+invResPlot(model1.3)
+```
+Based on the graph, the transformed matches well with the untransformed and the data. so we no further need to transform
+
+# Problem 8.5
+## 8.5.1
+```{r}
+data(BigMac2003)
+scatterplot(BigMac ~ FoodIndex, BigMac2003, boxplots=FALSE, id = 2)
+```
+
+The graph shows that the cost of a big mac declines with overall food prices. The big mac is cheaper in cities with high food index. 
+
+Karachi and Nairobi Two of the cities had very high cost for BigMac
+
+## 8.5.2
+
+```{r}
+m852 <- lm(BigMac ~ FoodIndex, BigMac2003)
+summary(powerTransform(m852))
+```
+
+```{r}
+invResPlot(m852)
+```
+
+```{r}
+boxCox(m852)
+```
+
+Both methods suggest that lamda = -0.5 or inverse square root transformation is the best solution so that the resulting scatterplot has a linear mean function
+
+## 8.5.3
+
+```{r}
+removerow <- match(c("Karachi","Nairobi"), rownames(BigMac2003))
+m853 <- update(m852, subse=-removerow)
+invResPlot(m853)
+```
+
+```{r}
+summary(powerTransform(m853))
+```
+
+After removing two points, we can see that it changes the fitted curve. Based on the above graph and summary table, we can see that, now the log transformation on the response variable will give the better fit
+
+## 8.5.4
+```{r}
+pairs(~ BigMac + Rice + Bread, BigMac2003)
+```
+
+```{r}
+summary(p <- powerTransform(cbind(BigMac, Rice, Bread) ~ 1, BigMac2003))
+testTransform(p, p$roundlam)
+```
+
+
+Based on the test, we can see that the extreme small pvalue indicates strong evidence against the null hypothesis that lamda = (1,1,1) 
+
+```{r}
+summary(pow1s<-powerTransform(cbind(BigMac, Rice, Bread) ~ 1, BigMac2003,
+subset=-c(26, 46)))
+
+```
+
+Deleting Karachi and Nairobi does not change
+
+## 8.5.5 
+```{r}
+BigMac2003$Apt33 <- BigMac2003$Apt^0.33
+m855 <- lm(BigMac ~ log(Bread) + log(Bus) + log(TeachGI) + Apt33, BigMac2003)
+invResPlot(m855)
+```
+
+```{r}
+summary(powerTransform(m855))
+```
+
+```{r}
+BigMac2003$transRes <- BigMac2003$BigMac^(-0.25)
+m8551 <- lm(transRes ~ log(Bread) + log(Bus) + log(TeachGI) + Apt33, BigMac2003)
+invResPlot(m8551)
+```
+
+

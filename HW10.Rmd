@@ -1,0 +1,149 @@
+---
+title: "Homework 10"
+author: "Minh Nguyen"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[LE,RO]{Minh Nguyen}
+- \fancyhead[LO,LE]{HW2}
+- \usepackage{float}
+
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: left=1in,right=1.2in,top=1in,bottom=1in
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(alr4)
+# library(lattice)
+```
+
+```{r, include=FALSE}
+## adapted from the post: https://community.rstudio.com/t/showing-only-the-first-few-lines-of-the-results-of-a-code-chunk/6963
+library(knitr)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Problem 10.2
+
+## 10.2.1
+```{r}
+?step
+Highway$sigs1 <- with(Highway, (sigs * len + 1)/len)
+f <- ~ log(len) + shld + log(adt) + log(trks) + lane + slim + lwid + 
+       itg + log(sigs1) + acpt + htype
+```
+
+### Forward Stepwise
+```{r}
+m0 <- lm(log(rate) ~ log(len), Highway) # the base model
+m.forward <- step(m0, scope=f, direction="forward",
+                  k=2 # for AIC
+                  # k=log(length(residuals(m0))) # for BIC
+                  )
+summary(m.forward)
+```
+### Backward Elimination
+```{r}
+m1 <- update(m0, f)
+m.backward <- step(m1, scope = c(lower = ~ log(len)), direction="backward")
+```
+- The forward selection and backward elimination subsets that are given in Section 10.2.2 is verified since the final model is log(len) + log(adt) + slim + log(sigs1) + htype
+
+## 10.2.2
+
+### Forward
+
+```{r}
+m3 <- lm(log(rate*len) ~ +lwid, Highway) # the base model
+f3 <- ~ lwid + shld + log(adt) + log(trks) + lane + slim + 
+       itg + log(sigs1) + acpt + htype
+m.forward <- step(m3, scope=f3, direction="forward",
+                  k=2 # for AIC
+                  # k=log(length(residuals(m0))) # for BIC
+                  )
+summary(m.forward)
+```
+### Backward
+
+```{r}
+m4 <- lm(log(rate*len) ~ +shld + log(adt) + log(trks) + lane + slim + lwid + 
+       itg + log(sigs1) + acpt + htype, Highway) # the base model
+m.forward <- step(m4, scope=c(lower=~lwid), direction="backward",
+                  #k=2 # for AIC
+                  #k=log(length(residuals(m0))) # for BIC
+                  )
+summary(m.backward)
+```
+- Both Forward selection and backward elimination gave the same model log(rate * len) ~ shld + lwid, which mean, using as response log(rate × len) and treating lwid as the focal, shld + lwid is the most influential on log(rate * len) 
+
+## 10.2.3
+
+### Forward
+
+```{r}
+m5 <- lm(log(rate) ~ +lwid, offset=-log(len),data=Highway) # the base model
+f5 <- ~ lwid + shld + log(adt) + log(trks) + lane + slim + 
+       itg + log(sigs1) + acpt + htype
+m.forward <- step(m3, scope=f3, direction="forward",
+                  k=2 # for AIC
+                  # k=log(length(residuals(m0))) # for BIC
+                  )
+summary(m.forward)
+```
+### Backward
+
+```{r}
+m6 <- lm(log(rate) ~ +shld + log(adt) + log(trks) + lane + slim + lwid + 
+       itg + log(sigs1) + acpt + htype, offset = -log(len), data=Highway) # the base model
+m.forward <- step(m6, scope=c(lower=~lwid), direction="backward",
+                  #k=2 # for AIC
+                  #k=log(length(residuals(m0))) # for BIC
+                  )
+summary(m.backward)
+```
+- When I repeat Problem 10.2.2, but use log(rate) as the response and -(len) as an offset, I got the same analysis. It is based on the three equation in the book, how we can transform from equation one to equation three. So it is very self explaine that they gave the similar result. 
+
+# Problem 10.6
+
+```{r}
+scatterplotMatrix(~ NS + ES + Area + Anear + Dist + DistSC, galapagos)
+```
+- We can see that Area, Anear, and Dist are heavily skewed, so we need to apply log transformation. Also, since elevation is not recorded for six very small islands, I will ignore elevation as a predictor of diversity (option 3)
+of diversity
+
+```{r}
+data(galapagos)
+m7 <- lm((NS/ES) ~ log(Area) + log(Anear) + log(Dist) + DistSC, data=galapagos)
+
+m7back <- step(m7, direction="backward",
+                  #k=2 # for AIC
+                  #k=log(length(residuals(m0))) # for BIC
+                  )
+summary(m7back)
+````
+- Using BE, we can see that log(Area) and log(Dist) are the most influential on diversity, which is now calculate by NS/ES

@@ -1,0 +1,128 @@
+---
+title: "Homework 9"
+author: "Minh Nguyen"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[LE,RO]{Minh Nguyen}
+- \fancyhead[LO,LE]{HW2}
+- \usepackage{float}
+
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: left=1in,right=1.2in,top=1in,bottom=1in
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(alr4)
+# library(lattice)
+```
+
+```{r, include=FALSE}
+## adapted from the post: https://community.rstudio.com/t/showing-only-the-first-few-lines-of-the-results-of-a-code-chunk/6963
+library(knitr)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Problem 9.1
+
+## 9.1.1
+```{r}
+data(Rpdata)
+scatterplotMatrix(~ + x1 + x2 + x3 + x4 + x5 + x6, Rpdata)
+```
+- Overall I do not see anything strange. The only thing that I notice here is that, the
+
+## 9.1.2
+
+```{r}
+mod912 <- lm(y ~ x1 + x2 + x3 + x4 + x5 + x6, Rpdata)
+summary(mod912)
+```
+
+## 9.1.3
+
+```{r}
+residualPlot(lm(y ~ ., Rpdata))
+```
+
+- The plot form a sentence
+
+# Problem 9.3
+
+```{r}
+data(pipeline)
+scatterplot(Lab ~ Field, pipeline, boxplots=FALSE)
+```
+- We can observe that Lab and Field has linear relationship. The majority of the points are above the equal line. It is also showed that the field measurement underestimates Lab measurements, especially for larger Lab measurements. 
+
+## 9.3.2
+```{r}
+model932 <- lm(Lab ~ Field, pipeline)
+residualPlot(model932)
+summary(model932)
+```
+- Based on the Beta1, we can see that the Field is lowering the Lab measurements, especially for larger Lab measurements. The plot suggests nonconstant variance because we can see that the larger residuals are skewed toward the right end of the plot.
+
+```{r}
+ncvTest(model932)
+```
+
+With small p-value. We can conclude thatthat variance increases as Field increases; higher lab measurement are less accurate
+
+## 9.3.3
+```{r}
+set.seed(1234)
+b1 <- Boot(model932)
+d1 <- deltaMethod(model932, "Field", vcov = hccm)
+print(out <- rbind(ols = summary(model932)$coef[2, 1:2],
+                   bootstrap = summary(b1)[2, c(2, 4), drop=TRUE],
+                   wls = summary(update(model932, weights=1/Field))$coef[2, 1:2], 
+                   hcorrected = c(d1$Estimate, d1$SE)), digits=5)
+```
+The estimated slope is the same across all methods except wls. The standard errors of ols and bootstrap are very close. The standard errors of wls is the smallest, while the corrected standard error is the largest
+
+# Problem 9.19
+```{r}
+data(drugcost)
+scatterplotMatrix(~ COST + RXPM + GS + RI + COPAY + AGE + F, data = drugcost, id = 3)
+```
+Based on the scatterplot matrix, we can see that the range of most variable are in very small and restricted, which make transformation has little meaning. 
+
+```{r}
+data(drugcost)
+scatterplotMatrix(~ COST + GS + RI, data = drugcost, id = 3)
+```
+
+We can observed that three plans MN1, MN2, and MN3 have very high values of RI and also very high costs based on the left most graph. Looking at GS, we can see that DE plan is much lower than others. 
+
+
+
+
+
+
+

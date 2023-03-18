@@ -1,0 +1,158 @@
+---
+title: "Homework 7"
+author: "Minh Nguyen"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[LE,RO]{Minh Nguyen}
+- \fancyhead[LO,LE]{HW2}
+- \usepackage{float}
+
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: left=1in,right=1.2in,top=1in,bottom=1in
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(alr4)
+# library(lattice)
+```
+
+```{r, include=FALSE}
+## adapted from the post: https://community.rstudio.com/t/showing-only-the-first-few-lines-of-the-results-of-a-code-chunk/6963
+library(knitr)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Problem 7.2
+
+```{r p7.2}
+data(physics1)
+m1 <- lm(y ~ x, data=physics1, weights=1/SD^2)
+summary(m1)
+```
+
+Based on the summary of the model, we can see that the
+t-tests for Intercept are very large with corresponding p-values of
+effectively 0, t-tests for x is small, with corresponding p-values of
+effectively 0 larger than 0.05, and the value of R2 is small. Also, the estimate RSE=1.106 is not so much larger than the assumed value of 1, which could indicate that the straight-line mean function does provide
+almost the same summary of these data (given p-val > 0.05) comparing to the wls
+
+
+# Problem 7.4
+
+## 7.4.1
+Since the variance of number of employee for each job class are different, so if we use the unit of analysis were the employee, then the data will have 5957 observations. Thus, we should use WLS
+
+## 7.4.2
+```{r p7.4.2}
+data(salarygov)
+salarygov$dom <- factor(with(salarygov, ifelse(NW/NE >= 0.7, "F","M")))
+library(splines)
+
+#problem 6.11
+m21 <- lm(MaxSalary ~ bs(Score) * dom, salarygov)
+Anova(m21)
+m22 <- update(m21, ~.-bs(Score):dom)
+c(PointEst = coef(m22)[5], confint(m22)["domM",])
+```
+```{r p7.4.2-1}
+#problem 7.4
+m21wls <- lm(MaxSalary ~ bs(Score)*dom, salarygov, weights = NE)
+Anova(m21wls)
+
+```
+```{r p7.4.2-3}
+m22wls <- update(m21wls, ~.-bs(Score):dom)
+c(PointEst = coef(m22wls)[5], confint(m22wls)["domM",])
+```
+We see only a little changes, except the difference between male and female classes is estimated to be slightly lower. 
+We can also see that the interaction is now not important as before due to very low p value
+
+
+# Problem 7.8
+
+### 7.8.1
+```{r p7.8.1}
+data(jevons)
+#m3 <- lm(Age ~ Weight, jevons)
+scatterplot(Weight ~ Age, data=jevons, boxplots=FALSE)
+
+scatterplot(SD ~ Age, data=jevons, boxplots=FALSE)
+```
+
+## 7.8.2
+```{r 7.8.2}
+m3 <- lm(Weight ~ Age, jevons, weights=n/SD^2)
+(s3 <- summary(m3))
+```
+
+## 7.8.3
+
+We want to test H0: fitted value of the regression at Age = 0, is equal to new coin, 7.9876 g
+```{r 7.8.3}
+predict(m3, newdata = data.frame(Age = 0), interval="confidence")
+
+```
+Yes, we can see that the fitted regression consistent with the known standard weight
+for a new coin
+
+## 7.8.4
+
+```{r p7.8.4}
+pred <- predict(m3, newdata=data.frame(Age=1:5),se.fit=TRUE)
+se.pred <- sqrt(jevons$SD^2 + pred$se.fit^2)
+z <- (pred$fit - 7.9379)/se.pred
+p <- pnorm(z, lower.tail = FALSE)
+names(p) <- 1:5
+p
+```
+Based on the table above we can see the probabilities that coins at each wight less than the legal minimum
+
+## 7.8.5
+
+```{r p7.8.5}
+deltaMethod(m3, "(7.9379-(Intercept))/Age")
+```
+The estimated age at which the predicted weight is equal to the legal minimum is 2.467645 and the standard error of this estimate is 0.0494
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
