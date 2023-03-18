@@ -1,0 +1,167 @@
+---
+title: "Homework 1"
+author: "Minh Nguyen"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[LE,RO]{Minh Nguyen}
+- \fancyhead[LO,LE]{HW0}
+- \usepackage{float}
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: left=1in,right=1.2in,top=1in,bottom=1in
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(alr4)
+```
+
+Used to control the output printing.
+```{r, echo=FALSE}
+## adapted from the post: https://community.rstudio.com/t/showing-only-the-first-few-lines-of-the-results-of-a-code-chunk/6963
+library(knitr)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+Suppress warnings.
+```{r warning=FALSE}
+ warning = FALSE
+```
+
+
+
+## Chapter 1
+
+### Problem 1.3
+
+#### 1.3.1
+- Based on the figure 1.12, there might be no dependence at all between Average soil temperature and number of Months after January 1976
+
+#### 1.3.2
+- Here is the graph of Average soil temperature and number of Months after January 1976 after resizing it to make the length of the horizontal axis at least 4 times the length of the vertical axis (using the mouse to drag)
+```{r mitchell}
+#data('Mitchell')
+#plot(Temp ~ Month, Mitchell, xlab="Months after January 1976",
+#     ylab="Average soil tempreture")
+include_graphics('figure1-3.png')
+```
+
+- By looking at the graph, we can conclude that there might be a temporal
+pattern between Average soil temperature and number of Months after January 1976. We might guess that the Average soil temperature is high in the summer and low in the winter
+
+
+### Problem  1.6
+##### Quality:
+- In the scatter matrix in figure 1.13, each plot in the scatterplot matrix is relevant to a particular one predictor regression of the the variable on the vertical axis, given the variable on the horizontal axis. 
+- For example, the plot of Quality versus Clarity in the top row and
+second column of the scatterplot matrix in Figure 1.13 shows that Quality is linearly relevant to the Clarity. We can draw a simple regression line between those variable. We get the overall impression that Quality increases on the Clarity increases, and there is little variation
+- We can make similar qualitative judgments about the regressions of Quality on Helpfulness
+- The overall impression is that Quality is strongly related to Clarity and Helpfulness
+
+##### Easiness:
+- Moreover, the plot of Easiness versus Easiness in the top row and
+forth column of the scatterplot matrix in Figure 1.13 shows that Quality is linearly relevant to Easiness. We can draw a simple regression line between those variable. We get the overall impression that Quality increases on the Easiness increases, but there is lot of variation
+- We can make similar qualitative judgments about the regressions of Easiness on other variables except raterInterest
+- The overall impression is that Easiness is weakly related to other variables in the scatterplot matrix, except raterInterest
+
+##### RateriInterest:
+- Finally, the raterInterst does not seem to relate to any other variable in the scatter matrix.
+
+
+
+## Chapter 2:
+### Problem 2.1
+#### 2.1.1
+```{r 2.1.1}
+data('Htwt')
+
+plot(wt ~ ht, data=Htwt)
+```
+
+- A simple linear regression model is somewhat make sense for these data, because there only 10 points. However, those points are generally increasing from right to left. 
+
+#### 2.1.2
+```{r 2.1.2}
+X <- Htwt$ht
+Y <- Htwt$wt
+n <- length(X)
+x_bar <- sum(X)/n
+y_bar <- sum(Y)/n
+SXX <- sum((X - x_bar)**2)
+SYY <- sum((Y - y_bar)**2)
+SXY <- sum((X - x_bar)*(Y - y_bar))
+Beta_hat_1 <- SXY/SXX
+Beta_hat_0 <- y_bar - Beta_hat_1*x_bar
+
+print(c(Xbar=x_bar, Ybar=y_bar, SXX=SXX, SYY=SYY, SXY=SXY))
+print(c(Intercept=Beta_hat_0, Slope=Beta_hat_1))
+plot(wt ~ ht, data=Htwt)
+abline(Beta_hat_0, Beta_hat_1)
+```
+
+#### 2.1.3
+```{r 2.1.3}
+RSS <- SYY - SXY**2/SXX
+s2 <- RSS/(n-2)
+s <- sqrt(s2)
+print(RSS)
+print(c(s2=s2, s=s))
+
+#std error coef
+se_Beta_hat_1 <- sqrt(s2/SXX)
+se_Beta_hat_0 <- sqrt(s2*(1/n +x_bar**2/SXX))
+print(c(SE_Intercept=se_Beta_hat_0, SE_Slope=se_Beta_hat_1))
+#cov
+covariance <- -s2*x_bar/SXX
+print(covariance)
+#t test
+t_Beta_hat_1 <- (Beta_hat_1 - 0)/se_Beta_hat_1
+t_Beta_hat_0 <- (Beta_hat_0 - 0)/se_Beta_hat_0
+print(c(t_Beta_hat_1, t_Beta_hat_0))
+#p value
+p_Beta_hat_1 <- 2 * pt( abs(t_Beta_hat_1), df = n-2, lower.tail = FALSE )
+p_Beta_hat_0 <- 2 * pt( abs(t_Beta_hat_0), df = n-2, lower.tail = FALSE )
+print(c(p_Beta_hat_1, p_Beta_hat_0))
+```
+```{r rtyrty}
+summary(lm(wt ~ ht,Htwt))
+```
+
+### Problem 2.2
+#### 2.2.1
+- The key different between points above this line (y=x) and the point below the line is that the points above the line have y > x, while the points bellow the line have y < x (since the scales on both axes are the same)
+- In other word, the points above the line (y=x) rice price in 2009 higher than the rice price in 2003, and vice versa
+
+#### 2.2.2
+- Vilnius had the largest increase in rice price
+- Mumbai had the largest decrease in rice price
+
+#### 2.2.3
+- No since the $\hat{\beta}_1$ might be greater than 0
+
+#### 2.2.4
+- Does not show any trend overtime
+- They do not have any relationship
