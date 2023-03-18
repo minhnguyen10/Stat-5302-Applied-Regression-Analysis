@@ -1,0 +1,218 @@
+---
+title: "Homework 2"
+author: "Minh Nguyen"
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[LE,RO]{Minh Nguyen}
+- \fancyhead[LO,LE]{HW2}
+- \usepackage{float}
+
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+geometry: left=1in,right=1.2in,top=1in,bottom=1in
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(alr4)
+```
+
+Used to control the output printing.
+```{r, include=FALSE}
+## adapted from the post: https://community.rstudio.com/t/showing-only-the-first-few-lines-of-the-results-of-a-code-chunk/6963
+library(knitr)
+hook_output <- knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+  lines <- options$output.lines
+  if (is.null(lines)) {
+    return(hook_output(x, options))  # pass to default hook
+  }
+  x <- unlist(strsplit(x, "\n"))
+  more <- "..."
+  if (length(lines)==1) {        # first n lines
+    if (length(x) > lines) {
+      # truncate the output, but add ....
+      x <- c(head(x, lines), more)
+    }
+  } else {
+    x <- c(more, x[lines], more)
+  }
+  # paste these lines together
+  x <- paste(c(x, ""), collapse = "\n")
+  hook_output(x, options)
+})
+```
+
+# Question 1
+
+```{r}
+library(knitr)
+include_graphics('Hw2/Page1.png')
+include_graphics('Hw2/Page2.png')
+```
+
+# Question 2
+```{r}
+A <- matrix(c(1, 3, 5, 8, 2, 4, 6, 7), nrow = 4)
+B <- matrix(c(2, 4, 6, 8), nrow = 4)
+#dim(A)
+D <- cbind(A,B)
+cov(A)
+cor(A)
+cov(D)
+cor(D)
+```
+## b.
+- The covariance matrices are different because cov() function calculate the unbiased covariance matrix, which mean it divied by (n-1) instead of n. The correlation matrices are the same when using cor().
+
+
+# Question 3
+a. the coefficient correlation = 0.5 means that father's height and son's are moderately correlated.
+
+b. c.
+```{r}
+include_graphics('Hw2/Page3.png')
+```
+
+```{r}
+1-pnorm(1)
+```
+
+```{r}
+1-pnorm(1/sqrt(12))
+```
+
+d.
+
+```{r}
+include_graphics('Hw2/Page4.png')
+```
+
+```{r}
+1-pnorm(-1/4)
+```
+
+
+# Question 4
+
+## a.
+
+```{r}
+#library(datasets)
+data(iris)
+iris[1:10,]
+```
+
+- There are 5 variables and 150 observations in the iris dataset (by looking at the Environment tab)
+
+## b. Plot figures to visualize each of the variables.
+```{r}
+boxplot(Sepal.Length~Species,
+        data=iris,
+        main='Sepal Length by Species',
+        xlab='Species',
+        ylab='Sepal Length',
+        col='steelblue',
+        border='black')
+boxplot(Sepal.Width~Species,
+        data=iris,
+        main='Sepal Length by Species',
+        xlab='Species',
+        ylab='Sepal Length',
+        col='steelblue',
+        border='black')
+boxplot(Petal.Length~Species,
+        data=iris,
+        main='Sepal Length by Species',
+        xlab='Species',
+        ylab='Sepal Length',
+        col='steelblue',
+        border='black')
+boxplot(Petal.Width~Species,
+        data=iris,
+        main='Sepal Length by Species',
+        xlab='Species',
+        ylab='Sepal Length',
+        col='steelblue',
+        border='black')
+```
+
+
+## c. Plot figures to visualize the relationship between two variables. Calculate the correlations among the variables. Interpret your results.
+
+```{r}
+pairs(iris[,1:4])
+```
+
+
+```{r}
+corr <- cor(iris[,1:4])
+#round(corr,3)
+corr
+```
+- Based on the plot and the correlation matrix, we can see that Petal.Width and Petal.Length are
+highly correlated, which mean flower that has larger Petal.Length will have larger Petal.Width. On the other hand Sepal.Length and Sepal.Width are not correlated. Sepal.Length somewhat related to Petal.Length and Petal.Width
+
+## d.
+
+```{r}
+pairs(iris[,1:4],col=iris[,5],oma=c(4,4,6,12))
+par(xpd=TRUE)
+legend(0.85,0.6, as.vector(unique(iris$Species)),fill=c(1,2,3))
+```
+
+
+```{r}
+corr_setosa <- cor(subset(iris, Species == "setosa")[,1:4])
+corr_setosa
+corr_versicolor <- cor(subset(iris, Species == "versicolor")[,1:4])
+corr_versicolor
+corr_virginia <- cor(subset(iris, Species == "virginica")[,1:4])
+corr_virginia
+```
+
+- I found out that classes have different correlation between variables
+
+# Question 5
+
+## a.
+```{r}
+n=1000
+x1 = rnorm(n)
+y = rnorm(n,sd = 0.5)
+x2 = x1^2 + y
+x3 = x1 + y
+X = cbind(x1,x2,x3)
+dim(X)
+```
+
+- the dimension of the data matrix X is 1000x3
+
+## b
+
+```{r}
+plot(x1, x2,
+   xlab="X1", ylab="X2")
+```
+- Based on the plot, x1 and x2 has polynomial relationship, and yes there are dependent
+
+```{r}
+plot(x1, x3,
+   xlab="X1", ylab="X2")
+```
+- Based on the plot, x1 and x2 has linear relationship, and yes there are dependent
+
+## c.
+
+```{r}
+cor(X)
+```
+- Based on the sample correlations, are x1 and x2 are not correlated, x1 and x3 are highly correlated
+
+## d.
+- Based on the answer to part (b) and (c), we can see that only linear relationship showed high correlation
